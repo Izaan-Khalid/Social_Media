@@ -4,6 +4,7 @@ import {
 	deleteUser,
 	getUser,
 	getUsers,
+	loginUser,
 	updateUser,
 } from "../controllers/userControllers.js"
 
@@ -23,5 +24,8 @@ router.put("/:id", updateUser)
 
 // Delete a user
 router.delete("/:id", deleteUser)
+
+// Login a user
+router.post("/login", loginUser)
 
 export default router

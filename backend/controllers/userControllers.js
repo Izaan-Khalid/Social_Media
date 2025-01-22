@@ -1,4 +1,6 @@
 import { MongoClient } from "mongodb"
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 
 const uri = process.env.DB_URI
 const client = new MongoClient(uri)
@@ -61,4 +63,33 @@ export const deleteUser = async (req, res, next) => {
 
 	await db.collection("users").deleteOne({ id: id })
 	res.status(200).json(user)
+}
+
+// @desc   Login a user
+// @route  POST /api/users/login
+export const loginUser = async (req, res, next) => {
+	const { email, password } = req.body
+	const user = await db.collection("users").findOne({ email: email })
+
+	if (!user) {
+		const err = new Error(`A user with email ${email} does not exist`)
+		err.status = 404
+		return next(err)
+	}
+
+	const isMatch = await bcrypt.compare(password, user.passwordHash)
+
+	console.log(isMatch)
+
+	if (!isMatch) {
+		const err = new Error("Invalid password")
+		err.status = 400
+		return next(err)
+	}
+
+	const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+		expiresIn: "30d",
+	})
+
+	res.status(200).json({ token })
 }
